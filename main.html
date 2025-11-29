@@ -1,0 +1,2539 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Chronos is a visual daily routine planner that helps you organize your day with a beautiful 24-hour clock interface.">
+  <meta name="theme-color" content="#111318">
+  <title>Chronos | Visual Daily Planner</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.469.0"></script>
+
+  <style>
+    :root {
+      --md-sys-color-background: #111318;
+      --md-sys-color-on-background: #E2E2E6;
+      
+      --md-sys-color-surface: #111318;
+      --md-sys-color-surface-container-low: #191C20;
+      --md-sys-color-surface-container: #1D2024;
+      --md-sys-color-surface-container-high: #282A2F;
+      
+      --md-sys-color-primary: #A8C7FA;
+      --md-sys-color-on-primary: #062E6F;
+      --md-sys-color-primary-container: #0842A0;
+      --md-sys-color-on-primary-container: #D6E3FF;
+
+      --md-sys-color-secondary: #C4C7D0;
+      --md-sys-color-tertiary: #E0C38C;
+      
+      --md-sys-color-error: #FFB4AB;
+      --md-sys-color-error-container: #93000A;
+      --md-sys-color-on-error-container: #FFDAD6;
+      
+      --md-sys-color-outline: #8E9199;
+      --md-sys-color-outline-variant: #44474F;
+
+      --md-sys-color-on-surface: #E2E2E6;
+      --md-sys-color-on-surface-variant: #C4C6CF;
+
+      --md-sys-state-hover: rgba(255,255,255,0.08);
+      --md-sys-state-hover-subtle: rgba(255,255,255,0.05);
+      --md-sys-state-pressed: rgba(255,255,255,0.12);
+
+      --shadow-elev-1: 0 2px 6px 2px rgba(0,0,0,0.3);
+      --shadow-elev-2: 0 4px 8px 3px rgba(0,0,0,0.35);
+      --shadow-elev-3: 0 10px 30px rgba(0,0,0,0.5);
+      --shadow-elev-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+      --shape-corner-small: 8px;
+      --shape-corner-medium: 12px;
+      --shape-corner-large: 16px;
+      --shape-corner-xl: 28px;
+      --shape-pill: 9999px;
+
+      --ease-standard: cubic-bezier(0.2, 0.0, 0, 1.0);
+      --font-sans: 'Roboto', system-ui, -apple-system, sans-serif;
+      --font-mono: 'Roboto Mono', monospace;
+    }
+
+    body.light-mode {
+      --md-sys-color-background: #FDFBFF;
+      --md-sys-color-on-background: #1B1B1F;
+      
+      --md-sys-color-surface: #FDFBFF;
+      --md-sys-color-surface-container-low: #F3F0F7;
+      --md-sys-color-surface-container: #E8E5EC;
+      --md-sys-color-surface-container-high: #DDD9E1;
+      
+      --md-sys-color-primary: #0B57D0;
+      --md-sys-color-on-primary: #FFFFFF;
+      --md-sys-color-primary-container: #D5E3FF;
+      --md-sys-color-on-primary-container: #001B3E;
+
+      --md-sys-color-secondary: #565A64;
+      --md-sys-color-tertiary: #715214;
+      
+      --md-sys-color-error: #B3261E;
+      --md-sys-color-error-container: #F9DEDC;
+      --md-sys-color-on-error-container: #410E0B;
+      
+      --md-sys-color-outline: #79747E;
+      --md-sys-color-outline-variant: #C4C7D0;
+
+      --md-sys-color-on-surface: #1B1B1F;
+      --md-sys-color-on-surface-variant: #44474F;
+
+      --md-sys-state-hover: rgba(0,0,0,0.06);
+      --md-sys-state-hover-subtle: rgba(0,0,0,0.04);
+      --md-sys-state-pressed: rgba(0,0,0,0.08);
+
+      --shadow-elev-1: 0 1px 3px rgba(0,0,0,0.16);
+      --shadow-elev-2: 0 2px 6px rgba(0,0,0,0.2);
+      --shadow-elev-3: 0 4px 12px rgba(0,0,0,0.24);
+      --shadow-elev-modal: 0 12px 32px rgba(0,0,0,0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Only prevent selection on obvious controls, not all text */
+    button,
+    .btn-tonal,
+    .btn-icon,
+    .fab-small,
+    .fab-large,
+    .fab-add,
+    .time-btn {
+      user-select: none;
+    }
+    
+    body {
+      margin: 0; height: 100vh; overflow: hidden;
+      background: var(--md-sys-color-background); 
+      color: var(--md-sys-color-on-background);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 1.5;
+      transition: background 0.25s var(--ease-standard), color 0.25s var(--ease-standard);
+    }
+
+    button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+      outline: 2px solid var(--md-sys-color-primary);
+      outline-offset: 2px;
+    }
+
+    .lucide {
+      width: 24px; height: 24px;
+      stroke-width: 2px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vertical-align: middle;
+      transition: transform 0.25s var(--ease-standard), opacity 0.2s;
+    }
+
+    .app {
+      position: relative; height: 100%; width: 100%;
+      display: grid; grid-template-rows: 64px 1fr;
+    }
+
+    header {
+      display: flex; justify-content: space-between; align-items: center; padding: 0 24px;
+      background: var(--md-sys-color-surface);
+      color: var(--md-sys-color-on-background);
+      z-index: 10;
+      border-bottom: 1px solid transparent;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+    .brand h1 { font-size: 22px; font-weight: 400; margin: 0; letter-spacing: -0.5px; }
+    .logo { width: 32px; height: 32px; }
+    .top-actions { display: flex; align-items: center; gap: 4px; }
+
+    .btn-tonal {
+      height: 40px; padding: 0 24px 0 16px; border-radius: var(--shape-pill);
+      background: var(--md-sys-color-surface-container-high); 
+      color: var(--md-sys-color-on-background); border: none;
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer; transition: background 0.15s, transform 0.08s;
+      font-family: var(--font-sans); font-size: 14px; font-weight: 500; letter-spacing: 0.1px;
+    }
+    .btn-tonal:hover { background: var(--md-sys-state-hover); }
+    .btn-tonal:active { transform: scale(0.98); background: var(--md-sys-state-pressed); }
+    .btn-tonal .lucide { width: 20px; height: 20px; }
+
+    .btn-icon {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: grid; place-items: center; background: transparent; border: none;
+      color: var(--md-sys-color-on-background); cursor: pointer; transition: background 0.15s, transform 0.08s;
+    }
+    .btn-icon:hover { background: var(--md-sys-state-hover); }
+    .btn-icon:active { transform: scale(0.95); background: var(--md-sys-state-pressed); }
+
+    .btn-icon.theme-switching .lucide {
+      transform: rotate(180deg) scale(0.85);
+      opacity: 0;
+    }
+
+    .stage { position: relative; display: flex; align-items: center; justify-content: center; height: 100%; overflow: hidden; }
+
+    .chart-wrapper {
+      container-type: size;
+      width: 65vh; height: 65vh; 
+      max-width: 650px; max-height: 650px;
+      position: relative; 
+    }
+    svg { overflow: visible; width: 100%; height: 100%; }
+
+    .track { fill: none; stroke: var(--md-sys-color-surface-container); stroke-width: 40; }
+    
+    /* DONUT STYLE & INTERACTION REFINEMENTS */
+    path.segment {
+      cursor: pointer; 
+      transition: filter 0.2s;
+      stroke: none; /* Removed for donut style */
+    }
+    path.segment:hover, path.segment.active { filter: brightness(1.15); z-index: 10; }
+
+    body.dragging path.segment {
+      transition: none !important;
+      opacity: 0.6;
+    }
+    body.dragging path.segment.active {
+      opacity: 1;
+      filter: brightness(1.15);
+    }
+    
+    .segment-handle {
+      fill: var(--md-sys-color-surface-container-high);
+      stroke: var(--md-sys-color-primary);
+      stroke-width: 2px;
+      paint-order: stroke fill;
+      cursor: grab;
+      transition: 0.1s;
+      display: none;
+      /* Massive invisible touch target */
+      outline: 20px solid transparent; 
+    }
+    .segment-handle:active {
+      cursor: grabbing;
+      fill: var(--md-sys-state-pressed);
+    }
+    body.edit-mode .segment-handle {
+      display: block;
+    }
+    body.dragging .segment-handle { 
+      pointer-events: none; 
+    }
+
+    .ticks line { stroke: var(--md-sys-color-outline-variant); stroke-width: 1; }
+    .ticks line.major { stroke: var(--md-sys-color-on-background); stroke-width: 2; }
+    .tick-lbl { font-size: 12px; fill: var(--md-sys-color-secondary); text-anchor: middle; font-family: var(--font-mono); pointer-events: none; }
+
+    #nowMarker {
+      fill: var(--md-sys-color-error);
+      transform-origin: 210px 210px; pointer-events: none;
+      transition: transform 0.5s linear;
+    }
+
+    .hub {
+      position: absolute; 
+      inset: 50% auto auto 50%; 
+      transform: translate(-50%, -50%);
+      width: 44cqmin; height: 44cqmin; 
+      border-radius: 50%;
+      /* Transparent hub for donut style, or slight background */
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      pointer-events: none; text-align: center;
+      z-index: 5;
+    }
+    
+    .hub-time { 
+      font-size: 11cqw; font-weight: 400; 
+      color: var(--md-sys-color-on-background); 
+      font-family: var(--font-sans); 
+      letter-spacing: -1px; line-height: 1; margin-bottom: 2cqw;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .hub-act { 
+      font-size: 3.5cqw; font-weight: 500; 
+      color: var(--md-sys-color-primary); 
+      max-width: 80%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      line-height: 1.2; 
+    }
+    .hub-rem { 
+      font-size: 3cqw; color: var(--md-sys-color-secondary); 
+      margin-top: 1cqw; 
+    }
+
+    .layout-dock {
+      position: absolute;
+      bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+      right: 32px; top: 90px;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 16px;
+      pointer-events: none; justify-content: flex-end;
+    }
+    .fab-group { pointer-events: auto; display: flex; flex-direction: column; gap: 12px; }
+
+    .fab-large {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);
+      display: grid; place-items: center; cursor: pointer;
+      box-shadow: var(--shadow-elev-2); transition: 0.2s var(--ease-standard), transform 0.08s;
+    }
+    .fab-large .lucide { width: 28px; height: 28px; stroke-width: 2.5px; }
+    .fab-large:hover { filter: brightness(1.08); box-shadow: var(--shadow-elev-3); }
+    .fab-large:active { transform: scale(0.96); }
+
+    .fab-small {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface);
+      display: grid; place-items: center; cursor: pointer;
+      box-shadow: var(--shadow-elev-1); transition: background 0.15s, transform 0.08s;
+    }
+    .fab-small:hover { background: var(--md-sys-state-hover); }
+    .fab-small:active { transform: scale(0.97); background: var(--md-sys-state-pressed); }
+    .fab-small.active { background: var(--md-sys-color-secondary); color: #000; }
+
+    .legend-panel {
+      pointer-events: auto; width: 300px; max-height: 50vh;
+      background: var(--md-sys-color-surface-container); border-radius: var(--shape-corner-xl);
+      display: flex; flex-direction: column; overflow: hidden;
+      transition: 0.3s var(--ease-standard); transform-origin: bottom right;
+      box-shadow: var(--shadow-elev-2);
+    }
+    .legend-panel.hidden { opacity: 0; transform: scale(0.9) translateY(20px); pointer-events: none; }
+    .l-head { padding: 24px 24px 12px; font-size: 18px; color: var(--md-sys-color-on-background); font-weight: 500; display:flex; align-items:center; justify-content:space-between;}
+    .l-label { font-size: 18px; }
+    .l-list { flex: 1; overflow-y: auto; padding: 0 12px 24px; }
+    .l-item { display: flex; align-items: center; gap: 16px; padding: 12px; border-radius: var(--shape-pill); cursor: pointer; transition: background 0.2s, box-shadow 0.2s; }
+    .l-item:hover { background: var(--md-sys-state-hover-subtle); }
+    .l-item.active { 
+      background: rgba(168, 199, 250, 0.18);
+      box-shadow: 0 0 0 1px rgba(168, 199, 250, 0.8);
+    }
+    .l-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .l-info { flex: 1; overflow: hidden; }
+    .l-name { font-size: 14px; font-weight: 500; color: var(--md-sys-color-on-background); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .l-time { font-size: 12px; color: var(--md-sys-color-secondary); font-family: var(--font-mono); margin-top: 2px; }
+    .l-dur { font-weight: 600; font-size: 12px; color: var(--md-sys-color-on-background); white-space: nowrap; }
+
+    .hud {
+      position: absolute;
+      bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+      left: 32px;
+      background: var(--md-sys-color-surface-container-high);
+      border-radius: 28px; padding: 16px 24px;
+      transform: translateY(20px); opacity: 0; transition: 0.3s var(--ease-standard); pointer-events: none;
+      box-shadow: var(--shadow-elev-2);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .hud.visible { transform: translateY(0); opacity: 1; }
+    .hud-l { font-size: 11px; color: var(--md-sys-color-tertiary); font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+    .hud-row { display:flex; align-items:center; gap:8px; }
+    .hud-n { font-size: 16px; font-weight: 600; color: var(--md-sys-color-on-background); }
+    .hud-t { font-family: var(--font-mono); color: var(--md-sys-color-secondary); font-size: 12px; display:inline-flex; align-items:center; gap:4px; }
+
+    body.edit-mode .hud-t {
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 2px 8px;
+      margin: -2px -8px;
+      transition: background 0.15s;
+    }
+    body.edit-mode .hud-t:hover {
+      background: var(--md-sys-state-hover-subtle);
+    }
+
+    body.dragging .hud-t {
+      font-weight: 600;
+      color: var(--md-sys-color-on-background);
+    }
+
+    .hud-name-text,
+    .hud-time-text {
+      display:inline;
+    }
+    .hud-name-input,
+    .hud-time-input {
+      display:none;
+    }
+    body.edit-mode .hud-name-text,
+    body.edit-mode .hud-time-text {
+      display:none;
+    }
+    body.edit-mode .hud-name-input,
+    body.edit-mode .hud-time-input {
+      display:inline-block;
+    }
+
+    .hud-name-input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+      color: var(--md-sys-color-on-background);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      padding: 2px 0;
+      min-width: 120px;
+    }
+    .hud-name-input:focus {
+      border-bottom-color: var(--md-sys-color-primary);
+    }
+
+    .hud-time-input {
+      background: var(--md-sys-color-surface-container);
+      border-radius: 999px;
+      border: 1px solid var(--md-sys-color-outline-variant);
+      color: var(--md-sys-color-on-background);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 4px 8px;
+      width: 56px;
+      text-align:center;
+    }
+    .hud-time-input:focus {
+      border-color: var(--md-sys-color-primary);
+      background: var(--md-sys-color-surface);
+    }
+    .hud-time-input.error {
+      border-color: var(--md-sys-color-error);
+    }
+
+    .hud-time-sep {
+      padding: 0 4px;
+      font-size: 12px;
+      color: var(--md-sys-color-secondary);
+    }
+
+    .hud-error {
+      font-size: 11px;
+      color: var(--md-sys-color-error);
+      margin-top: 2px;
+    }
+
+    .hud-time-picker-btn {
+      border: none;
+      background: transparent;
+      border-radius: 999px;
+      padding: 2px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    body.edit-mode .hud-time-picker-btn {
+      display: inline-flex;
+    }
+    .hud-time-picker-btn:hover {
+      background: var(--md-sys-state-hover-subtle);
+    }
+    .hud-time-picker-btn .lucide {
+      width: 14px;
+      height: 14px;
+    }
+
+    .edit-mode-badge {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--md-sys-color-surface-container-high);
+      color: var(--md-sys-color-tertiary);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s var(--ease-standard), transform 0.2s var(--ease-standard);
+      box-shadow: var(--shadow-elev-1);
+    }
+    body.edit-mode .edit-mode-badge {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #hintMain {
+      position: absolute;
+      left: 50%;
+      top: calc(100% + 8px);
+      transform: translateX(-50%) translateY(6px);
+      font-size: 12px;
+      color: var(--md-sys-color-secondary);
+      background: var(--md-sys-color-surface-container-high);
+      padding: 6px 10px;
+      border-radius: 999px;
+      box-shadow: var(--shadow-elev-1);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s var(--ease-standard), transform 0.25s var(--ease-standard);
+      white-space: nowrap;
+    }
+    #hintMain.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #snackbar {
+      position: fixed;
+      left: 50%;
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%) translateY(20px);
+      background: var(--md-sys-color-surface-container-high);
+      color: var(--md-sys-color-on-surface);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: var(--shadow-elev-2);
+      transition: opacity 0.2s var(--ease-standard), transform 0.2s var(--ease-standard);
+      z-index: 700;
+    }
+    #snackbar.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .dropdown-wrapper { position: relative; }
+    .dropdown-menu {
+      position: absolute; top: 100%; right: 0; margin-top: 8px; width: 260px;
+      background: var(--md-sys-color-surface-container); border-radius: var(--shape-corner-medium);
+      padding: 8px 0; z-index: 100; box-shadow: var(--shadow-elev-3);
+      display: none; flex-direction: column; transform-origin: top right;
+    }
+    .dropdown-menu.show { display: flex; animation: fadeScale 0.15s var(--ease-standard); }
+    .dd-header { font-size: 11px; color: var(--md-sys-color-outline); padding: 8px 16px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+    .dd-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; color: var(--md-sys-color-on-background); font-size: 14px; transition: background 0.2s; }
+    .dd-item:hover { background: var(--md-sys-state-hover-subtle); }
+    .dd-item .lucide { width: 18px; height: 18px; color: inherit; }
+    
+    .dd-divider { height: 1px; background: var(--md-sys-color-outline-variant); margin: 8px 0; opacity: 0.5; }
+    .dd-plan-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; color: var(--md-sys-color-on-background); font-size: 14px; transition: background 0.2s; }
+    .dd-plan-row:hover { background: var(--md-sys-state-hover-subtle); }
+
+    .backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 500; display: grid; place-items: center; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+      backdrop-filter: blur(2px);
+    }
+    .backdrop.open { opacity: 1; pointer-events: auto; }
+    
+    .modal {
+      width: 100%; max-width: 800px; height: 85vh; 
+      background: var(--md-sys-color-surface);
+      border-radius: var(--shape-corner-xl);
+      display: flex; flex-direction: column;
+      transform: scale(0.95); transition: transform 0.3s var(--ease-standard);
+      box-shadow: var(--shadow-elev-modal);
+      overflow: hidden;
+    }
+    .backdrop.open .modal { transform: scale(1); }
+
+    .m-head { padding: 24px 24px 16px; background: var(--md-sys-color-surface); z-index: 2; }
+    .m-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .m-title { font-size: 24px; font-weight: 400; color: var(--md-sys-color-on-background); }
+
+    .capacity-wrapper { 
+      width: 100%; height: 4px; background: var(--md-sys-color-surface-container-high);
+      border-radius: 2px; overflow: hidden; display: flex; position: relative;
+    }
+    .gauge-filled { height: 100%; background: var(--md-sys-color-primary); transition: width 0.3s var(--ease-standard); }
+    .gauge-filled.over { background: var(--md-sys-color-error); }
+    .gauge-text { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--md-sys-color-secondary); font-family: var(--font-mono); }
+
+    .m-body { flex: 1; overflow-y: auto; padding: 0 24px 24px; display: flex; flex-direction: column; gap: 8px; }
+
+    .editor-card {
+      display: grid; 
+      grid-template-columns: 40px 1.5fr 140px 60px 40px; 
+      gap: 16px; align-items: center; padding: 12px 16px; 
+      border-radius: 12px; background: var(--md-sys-color-surface-container-low);
+      transition: 0.2s; border: 1px solid transparent;
+    }
+    .editor-card:hover { background: var(--md-sys-color-surface-container); }
+    .editor-card.conflict { background: #2C1B1B; border-color: var(--md-sys-color-error); }
+    body.light-mode .editor-card.conflict { background: #FCEFED; }
+
+    .color-swatch {
+      width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--md-sys-color-surface-container-high);
+      position: relative; cursor: pointer; overflow: hidden; flex-shrink: 0;
+    }
+    .color-swatch input { position: absolute; opacity: 0; width: 200%; height: 200%; top:-50%; left:-50%; cursor: pointer; }
+
+    .inp-title { 
+      background: transparent; border: none; border-bottom: 1px solid var(--md-sys-color-outline-variant);
+      color: var(--md-sys-color-on-background); font-size: 16px; font-weight: 400; padding: 8px 0; 
+      font-family: var(--font-sans); outline: none; transition: 0.2s; width: 100%;
+    }
+    .inp-title:focus { border-bottom-color: var(--md-sys-color-primary); }
+
+    .time-btn {
+      height: 32px; border-radius: 8px; border: 1px solid var(--md-sys-color-outline);
+      background: transparent; color: var(--md-sys-color-on-background);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: 13px; font-family: var(--font-mono); cursor: pointer; transition: 0.15s;
+    }
+    .time-btn:hover { background: var(--md-sys-state-hover-subtle); border-color: var(--md-sys-color-on-background); }
+    .time-btn:active { transform: scale(0.98); background: var(--md-sys-state-pressed); }
+
+    .dur-badge { font-family: var(--font-mono); font-size: 12px; color: var(--md-sys-color-secondary); text-align: right; white-space: nowrap; }
+
+    .del-icon {
+      width: 40px; height: 40px; display: grid; place-items: center;
+      color: var(--md-sys-color-outline); cursor: pointer; border-radius: 50%; transition: 0.2s;
+    }
+    .del-icon:hover { background: rgba(255,180,171,0.1); color: var(--md-sys-color-error); }
+    .del-icon:active { transform: scale(0.95); }
+    .del-icon .lucide { width: 20px; height: 20px; }
+
+    .m-foot { 
+      padding: 16px 24px; border-top: 1px solid var(--md-sys-color-surface-container-high);
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--md-sys-color-surface-container); z-index: 2;
+    }
+    
+    .btn-filled {
+      height: 40px; padding: 0 24px; border-radius: 20px;
+      background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);
+      border: none; font-weight: 500; font-size: 14px; cursor: pointer;
+      transition: box-shadow 0.2s, filter 0.2s, transform 0.08s; font-family: var(--font-sans);
+    }
+    .btn-filled:hover { box-shadow: 0 2px 4px 1px rgba(0,0,0,0.2); filter: brightness(1.05); }
+    .btn-filled:active { transform: scale(0.98); box-shadow: none; }
+    .btn-filled:disabled { background: rgba(226, 226, 230, 0.12); color: rgba(226, 226, 230, 0.38); box-shadow: none; cursor: not-allowed; }
+    
+    .btn-text {
+      height: 40px; padding: 0 12px; border-radius: 20px;
+      background: transparent; color: var(--md-sys-color-primary);
+      border: none; font-weight: 500; font-size: 14px; cursor: pointer; font-family: var(--font-sans);
+      transition: background 0.15s, transform 0.08s;
+    }
+    .btn-text:hover { background: rgba(168, 199, 250, 0.08); }
+    .btn-text:active { transform: scale(0.97); }
+
+    .fab-add {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: var(--md-sys-color-tertiary); color: #291A00;
+      display: grid; place-items: center; cursor: pointer;
+      box-shadow: var(--shadow-elev-2); margin-top: -28px; transition: 0.2s;
+    }
+    .fab-add:hover { transform: scale(1.05); box-shadow: var(--shadow-elev-3); }
+    .fab-add:active { transform: scale(0.98); }
+    .fab-add .lucide { width: 32px; height: 32px; stroke-width: 2.5px; }
+
+    .clk-bg { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.6); display: none; place-items: center; backdrop-filter: blur(2px); }
+    .clk-bg.show { display: grid; }
+    .clk-card { 
+      width: 320px; background: var(--md-sys-color-surface-container-high); 
+      border-radius: 28px; padding: 24px; 
+      box-shadow: var(--shadow-elev-3); 
+    }
+    .clk-head { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; }
+    .clk-disp { display: flex; align-items: flex-end; gap: 4px; margin-top: 12px; }
+    .clk-in {
+      background: var(--md-sys-color-surface-container-low); border: 2px solid transparent; border-radius: 8px;
+      width: 80px; height: 70px; text-align: center; font-family: var(--font-sans); font-size: 48px;
+      color: var(--md-sys-color-on-background); outline: none; transition: 0.2s;
+    }
+    .clk-in:focus { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border-color: var(--md-sys-color-primary); }
+    
+    .clk-toggle {
+      display: flex; background: var(--md-sys-color-surface); border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: 8px; overflow: hidden;
+    }
+    .clk-t-opt { padding: 8px 24px; font-size: 12px; text-transform: uppercase; cursor: pointer; color: var(--md-sys-color-on-surface); font-weight: 500; letter-spacing: 0.5px; border: none; background: transparent; }
+    .clk-t-opt:hover { background: var(--md-sys-state-hover-subtle); }
+    .clk-t-opt.active { background: var(--md-sys-color-secondary); color: #000; font-weight: 700; }
+    
+    .clk-face { 
+      width: 256px; height: 256px; border-radius: 50%; background: var(--md-sys-color-surface-container-low); 
+      margin: 0 auto; position: relative; 
+    }
+    .clk-num { 
+      position: absolute; width: 32px; height: 32px; border-radius: 50%; 
+      display: grid; place-items: center; font-size: 14px; color: var(--md-sys-color-on-background); 
+      cursor: pointer; transition: 0.2s;
+    }
+    .clk-num:hover { background: var(--md-sys-state-hover-subtle); }
+    .clk-num.sel { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); font-weight: 700; }
+    .clk-center-dot { position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: var(--md-sys-color-primary); border-radius: 50%; transform: translate(-50%,-50%); }
+
+    .modal-mini { max-width: 320px; height: auto; padding: 24px; border-radius: 28px; }
+    .mini-title { font-size: 22px; margin-bottom: 16px; color: var(--md-sys-color-on-background); }
+    .mini-text { font-size: 14px; color: var(--md-sys-color-secondary); margin-bottom: 24px; line-height: 1.5; }
+    .mini-acts { display: flex; justify-content: flex-end; gap: 8px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @keyframes fadeScale { 
+      from{opacity:0; transform:scale(0.95);} 
+      to{opacity:1; transform:scale(1);} 
+    }
+    @keyframes slideUp { 
+      from { transform: translateY(100%); opacity: 0; } 
+      to { transform: translateY(0); opacity: 1; } 
+    }
+
+    .hide-mobile { display: inline; }
+
+    @media (max-width: 600px) {
+      header { padding: 0 16px; }
+      .top-actions { gap: 2px; }
+      .btn-tonal { padding-inline: 12px; }
+      .btn-icon { width: 36px; height: 36px; }
+
+      .hide-mobile { display: none; }
+
+      .stage {
+        padding-bottom: 180px; 
+        box-sizing: border-box;
+      }
+      .modal {
+        max-width: 100%; height: 100%; 
+        border-radius: 0;
+      }
+      .m-head { padding: 16px; }
+      .m-body { padding: 0 16px 80px; }
+
+      .chart-wrapper { width: 90vw; height: 90vw; } 
+
+      .layout-dock { 
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px)); right: 16px; left: 16px;
+        align-items: flex-end;
+        top: auto;
+      }
+      
+      .legend-panel { 
+        width: 100%; 
+        max-height: 40vh; 
+        margin-bottom: 16px;
+      }
+
+      .dropdown-menu {
+        position: fixed;
+        top: auto; bottom: 0; left: 0; right: 0;
+        width: 100%; margin: 0;
+        border-radius: 28px 28px 0 0;
+        padding: 16px 0 24px;
+        transform-origin: bottom center;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+        border-top: 1px solid var(--md-sys-color-surface-container-high);
+        z-index: 200;
+      }
+      
+      .dropdown-menu.show {
+        animation: slideUp 0.3s cubic-bezier(0.2, 0.0, 0, 1.0) forwards;
+      }
+
+      .dd-item, .dd-plan-row { padding: 16px 24px; font-size: 16px; }
+      .dd-header { padding: 8px 24px; }
+
+      .editor-card {
+        grid-template-columns: 40px 1fr 40px;
+        grid-template-rows: auto auto;
+        gap: 12px 12px;
+        padding: 16px;
+      }
+      
+      .color-swatch { grid-column: 1; grid-row: 1; }
+      .inp-title { grid-column: 2; grid-row: 1; width: 100%; font-size: 18px; }
+      .del-icon { grid-column: 3; grid-row: 1; }
+
+      .time-btn {
+        grid-column: 1 / span 2; grid-row: 2;
+        justify-content: flex-start; padding: 0 12px;
+        background: var(--md-sys-color-surface-container);
+        border-color: transparent;
+      }
+      .dur-badge { grid-column: 3; grid-row: 2; align-self: center; }
+    }
+
+    .app-footer {
+      position: absolute;
+      left: 16px;
+      bottom: 4px;
+      right: 16px;
+      font-size: 11px;
+      color: var(--md-sys-color-secondary);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .app-footer small {
+      pointer-events: auto;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a href="#" class="brand" aria-label="Chronos Home">
+      <svg class="logo" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <rect width="40" height="40" rx="12" fill="#A8C7FA"/>
+        <path d="M20 10V20L26 26" stroke="#062E6F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h1>Chronos</h1>
+    </a>
+    
+    <div class="top-actions">
+      <div class="dropdown-wrapper">
+        <button class="btn-tonal" id="btnPresets" aria-label="Open Presets Menu">
+          <i data-lucide="layout-template"></i>
+          <span class="hide-mobile">Presets</span> 
+        </button>
+        <div class="dropdown-menu" id="menuPresets" role="menu"></div>
+      </div>
+      <div class="dropdown-wrapper">
+        <button class="btn-icon" id="btnData" aria-label="Open Data Options">
+          <i data-lucide="more-vertical"></i>
+        </button>
+        <div class="dropdown-menu" id="menuData" role="menu">
+          <div class="dd-item" id="btnExport" role="menuitem">
+            <i data-lucide="download"></i> Export JSON
+          </div>
+          <div class="dd-item" id="btnImport" style="position:relative" role="menuitem">
+            <i data-lucide="upload"></i> Import JSON 
+            <input type="file" id="fileInput" style="position:absolute;inset:0;opacity:0;cursor:pointer" aria-label="Upload JSON file">
+          </div>
+        </div>
+      </div>
+      <button class="btn-icon" id="themeToggle" aria-label="Toggle light or dark theme" aria-pressed="false" title="Toggle Theme">
+        <i data-lucide="moon"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="stage" role="main">
+    <div class="chart-wrapper">
+      <svg id="chartSvg" viewBox="0 0 420 420" aria-label="24 Hour Schedule Visualization">
+        <defs id="defs"></defs>
+        <circle cx="210" cy="210" r="160" class="track" />
+        <g id="paths" aria-hidden="true"></g>
+        <g id="clockFace" class="ticks" aria-hidden="true"></g>
+        <path id="nowMarker" d="M 210 40 L 205 25 L 215 25 Z" aria-label="Current Time Indicator" /> 
+      </svg>
+      <div class="hub" aria-live="polite">
+        <div class="hub-time" id="hubTime">00:00</div>
+        <div class="hub-act" id="hubAct">Loading...</div>
+        <div class="hub-rem" id="hubRem">-- min left</div>
+      </div>
+
+      <div id="editBadge" class="edit-mode-badge" aria-hidden="true">
+        Wheel editing on
+      </div>
+
+      <div id="hintMain">Click a slice or list item to inspect. Use ✏️ Edit for full control.</div>
+    </div>
+
+    <div class="hud" id="hud" role="status" aria-live="polite">
+      <div class="hud-l">Selected Activity</div>
+      <div class="hud-row">
+        <span class="hud-n">
+          <span id="hudNameText" class="hud-name-text">...</span>
+          <input id="hudNameInput" class="hud-name-input" aria-label="Activity name">
+        </span>
+      </div>
+      <div class="hud-row" id="hudTimeRow">
+        <span class="hud-t">
+          <span id="hudTimeText" class="hud-time-text">...</span>
+          <input id="hudStartInput" class="hud-time-input" aria-label="Start time (HH:MM)" inputmode="numeric" maxlength="5">
+          <span class="hud-time-sep">–</span>
+          <input id="hudEndInput" class="hud-time-input" aria-label="End time (HH:MM)" inputmode="numeric" maxlength="5">
+          <button id="hudTimePickerBtn" class="hud-time-picker-btn" type="button" aria-label="Open time picker">
+            <i data-lucide="clock-3"></i>
+          </button>
+        </span>
+      </div>
+      <div id="hudError" class="hud-error" aria-live="polite" style="display:none;"></div>
+    </div>
+
+    <div class="layout-dock">
+      <div class="legend-panel" id="legPanel" aria-hidden="false" role="region" aria-label="Schedule list">
+        <div class="l-head">
+          <span class="l-label">Schedule</span>
+        </div>
+        <div class="l-list" id="legList" role="list"></div>
+      </div>
+      <div class="fab-group">
+        <button class="fab-small active" id="tgLeg" aria-label="Toggle Legend List" title="Toggle Legend">
+          <i data-lucide="list"></i>
+        </button>
+        <button class="fab-small" id="btnWheelEdit" aria-label="Toggle wheel edit mode (drag blocks on the clock)" aria-pressed="false" title="Toggle wheel edit mode">
+          <i data-lucide="hand"></i>
+        </button>
+        <button class="fab-large" id="btnEdit" aria-label="Open list editor" title="Open List Editor">
+          <i data-lucide="pencil"></i>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <small>Plans and presets are stored locally in this browser using localStorage. Import/export never sends your data to a server.</small>
+    <small>Accessible; keyboard and screen reader friendly.</small>
+  </footer>
+</div>
+
+<div class="backdrop" id="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
+    <div class="m-head">
+      <div class="m-title-row">
+        <h2 class="m-title" id="editorTitle">Edit Schedule</h2>
+        <button class="btn-icon" id="btnCloseEditor" aria-label="Close Editor"><i data-lucide="x"></i></button>
+      </div>
+      
+      <div class="capacity-wrapper" role="progressbar" aria-valuemin="0" aria-valuemax="24" id="capBar">
+        <div class="gauge-filled" id="capFill"></div>
+      </div>
+      <div class="gauge-text">
+        <span id="capTxt">0h Scheduled</span>
+        <span id="capRem">24h Free</span>
+      </div>
+    </div>
+
+    <div class="m-body" id="rows"></div>
+    
+    <div class="m-foot">
+      <div style="display:flex; gap:0px">
+        <button class="btn-icon" id="btnUndo" title="Undo" aria-label="Undo Change"><i data-lucide="undo-2"></i></button>
+        <button class="btn-icon" id="btnRedo" title="Redo" aria-label="Redo Change"><i data-lucide="redo-2"></i></button>
+      </div>
+      
+      <button class="fab-add" id="btnAdd" aria-label="Add Activity">
+        <i data-lucide="plus"></i>
+      </button>
+
+      <button class="btn-filled" id="btnSaveChanges">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop" id="saveModal">
+  <div class="modal modal-mini" role="dialog" aria-modal="true" aria-labelledby="saveTitle"> 
+    <h3 class="mini-title" id="saveTitle">Save Preset</h3>
+    <input type="text" id="planNameInput" class="inp-title" placeholder="e.g. Weekend Routine" style="width:100%; margin-bottom:24px" aria-label="Preset Name">
+    <div class="mini-acts">
+      <button class="btn-text" id="btnSaveCancel">Cancel</button>
+      <button class="btn-filled" id="btnSaveConfirm">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop" id="confirmModal">
+  <div class="modal modal-mini" role="dialog" aria-modal="true" aria-labelledby="confTitle">
+    <h3 class="mini-title" id="confTitle">Delete Plan?</h3>
+    <p class="mini-text">
+      This will permanently delete this preset. This action cannot be undone.
+    </p>
+    <div class="mini-acts">
+      <button class="btn-text" id="btnDeleteCancel">Cancel</button>
+      <button class="btn-filled" id="btnDeleteConfirm" style="background:var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container)">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop" id="resetModal">
+  <div class="modal modal-mini" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+    <h3 class="mini-title" id="resetTitle">Restore Default Schedule?</h3>
+    <p class="mini-text">
+      This will replace your current schedule with the original Chronos template. Your saved presets will stay intact.
+    </p>
+    <div class="mini-acts">
+      <button class="btn-text" id="btnResetCancel">Cancel</button>
+      <button class="btn-filled" id="btnResetConfirm">Restore</button>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop" id="clearModal">
+  <div class="modal modal-mini" role="dialog" aria-modal="true" aria-labelledby="clearTitle">
+    <h3 class="mini-title" id="clearTitle">Clear current day?</h3>
+    <p class="mini-text">
+      This will remove all activities from your current schedule. Presets will be preserved.
+    </p>
+    <div class="mini-acts">
+      <button class="btn-text" id="btnClearCancel">Cancel</button>
+      <button class="btn-filled" id="btnClearConfirm" style="background:var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container)">Clear</button>
+    </div>
+  </div>
+</div>
+
+<div class="clk-bg" id="clk" role="dialog" aria-modal="true">
+  <div class="clk-card">
+    <div class="clk-head">
+      <div class="clk-toggle" role="tablist">
+        <button class="clk-t-opt active" id="tabStart" role="tab" aria-selected="true">Start</button>
+        <button class="clk-t-opt" id="tabEnd" role="tab" aria-selected="false">End</button>
+      </div>
+      <div class="clk-disp">
+        <input type="text" class="clk-in" id="clkH" maxlength="2" aria-label="Hour">
+        <span style="font-size:32px; padding-bottom:10px; color:var(--md-sys-color-on-surface-variant)">:</span>
+        <input type="text" class="clk-in" id="clkM" maxlength="2" aria-label="Minute">
+      </div>
+    </div>
+    
+    <div class="clk-face" id="cDial" aria-hidden="true">
+      <div class="clk-center-dot"></div>
+    </div>
+    
+    <div class="mini-acts" style="margin-top:24px">
+      <button class="btn-text" id="btnClkCancel">Cancel</button>
+      <button class="btn-filled" id="btnClkApply">Set Time</button>
+    </div>
+  </div>
+</div>
+
+<div id="snackbar" aria-live="polite"></div>
+
+<script>
+window.App = (() => {
+  /* -----------------------------------------------------------
+     CONSTANTS & HELPERS
+     ----------------------------------------------------------- */
+  const DEF = [
+    { label: 'Sleep', start: '23:00', end: '07:00', color: '#8A90A3' },
+    { label: 'Morning Routine', start: '07:00', end: '08:30', color: '#F2B8B5' },
+    { label: 'Deep Work', start: '08:30', end: '11:30', color: '#A8C7FA' },
+    { label: 'Break', start: '11:30', end: '13:00', color: '#C4EDD2' },
+    { label: 'Focus Block', start: '13:00', end: '15:00', color: '#E8DEF8' },
+    { label: 'Admin', start: '15:00', end: '17:00', color: '#E6E1E5' },
+    { label: 'Relax', start: '17:00', end: '21:00', color: '#FDD663' },
+    { label: 'Wind Down', start: '21:00', end: '23:00', color: '#D7C0FF' }
+  ];
+
+  const state = {
+    items: [],
+    history: [],
+    historyIndex: -1,
+    savedPlans: [],
+    selectedIndex: -1,
+    legendOpen: true,
+    backupItems: null,
+    deleteIndex: -1,
+    theme: 'dark',
+    drag: null,
+    pendingDrag: null,
+    editMode: false,
+    hudLastField: null,
+    ts: { idx: -1, start: '', end: '', mode: 'start', unit: 'h' }
+  };
+
+  const $ = id => document.getElementById(id);
+  const ui = {
+    svg: $('paths'),
+    clock: $('clockFace'),
+    marker: $('nowMarker'),
+    chartSvg: $('chartSvg'),
+    hubTime: $('hubTime'),
+    hubAct: $('hubAct'),
+    hubRem: $('hubRem'),
+    leg: $('legList'),
+    pan: $('legPanel'),
+    hud: $('hud'),
+    hudNameText: $('hudNameText'),
+    hudTimeText: $('hudTimeText'),
+    hudNameInput: $('hudNameInput'),
+    hudStartInput: $('hudStartInput'),
+    hudEndInput: $('hudEndInput'),
+    hudTimeRow: $('hudTimeRow'),
+    hudTimePickerBtn: $('hudTimePickerBtn'),
+    hudError: $('hudError'),
+    mod: $('modal'),
+    rows: $('rows'),
+    cFill: $('capFill'),
+    cTxt: $('capTxt'),
+    cRem: $('capRem'),
+    clk: $('clk'),
+    dial: $('cDial'),
+    menuP: $('menuPresets'),
+    menuData: $('menuData'),
+    tabS: $('tabStart'),
+    tabE: $('tabEnd'),
+    clkH: $('clkH'),
+    clkM: $('clkM'),
+    saveMod: $('saveModal'),
+    saveInp: $('planNameInput'),
+    confMod: $('confirmModal'),
+    resetMod: $('resetModal'),
+    clearMod: $('clearModal'),
+    themeToggle: $('themeToggle'),
+    btnWheelEdit: $('btnWheelEdit'),
+    editBadge: $('editBadge'),
+    hintMain: $('hintMain')
+  };
+
+  const snackbarEl = $('snackbar');
+  let snackbarTimeoutId;
+  function showSnackbar(message) {
+    if (!snackbarEl) return;
+    snackbarEl.textContent = message;
+    snackbarEl.classList.add('show');
+    clearTimeout(snackbarTimeoutId);
+    snackbarTimeoutId = setTimeout(() => snackbarEl.classList.remove('show'), 2400);
+  }
+
+  const toM = t => {
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  };
+
+  const minutesToString = m => {
+    m = Math.round(m);
+    m = ((m % 1440) + 1440) % 1440;
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+  };
+
+  const angleToMinutes = angle => {
+    const norm = (angle + 90 + 360) % 360;
+    return norm / 360 * 1440;
+  };
+
+  const getD = (s,e) => {
+    let d = toM(e) - toM(s);
+    return d < 0 ? d + 1440 : d;
+  };
+
+  const formatDur = m => {
+    const h = Math.floor(m/60);
+    const n = Math.round(m%60);
+    if (h > 0 && n > 0) return `${h}h ${n}m`;
+    if (h > 0) return `${h}h`;
+    return `${n}m`;
+  };
+
+  const parseTimeInput = str => {
+    const m = str.trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    const h = Number(m[1]);
+    const mm = Number(m[2]);
+    if (h > 23 || mm > 59) return null;
+    return minutesToString(h * 60 + mm);
+  };
+
+  // Helper: SVG Donut Path Generator
+  const getDonutPath = (startM, endM, rOuter, rInner, cx, cy) => {
+    const startA = (startM / 1440) * 360 - 90;
+    const endA   = (endM / 1440) * 360 - 90;
+    const rad = d => d * Math.PI / 180;
+    
+    // Outer Points
+    const x1o = cx + rOuter * Math.cos(rad(startA));
+    const y1o = cy + rOuter * Math.sin(rad(startA));
+    const x2o = cx + rOuter * Math.cos(rad(endA));
+    const y2o = cy + rOuter * Math.sin(rad(endA));
+    
+    // Inner Points
+    const x1i = cx + rInner * Math.cos(rad(startA));
+    const y1i = cy + rInner * Math.sin(rad(startA));
+    const x2i = cx + rInner * Math.cos(rad(endA));
+    const y2i = cy + rInner * Math.sin(rad(endA));
+
+    const diff = endM - startM;
+    const large = diff > 720 ? 1 : 0;
+
+    return `
+      M ${x1o} ${y1o}
+      A ${rOuter} ${rOuter} 0 ${large} 1 ${x2o} ${y2o}
+      L ${x2i} ${y2i}
+      A ${rInner} ${rInner} 0 ${large} 0 ${x1i} ${y1i}
+      Z
+    `;
+  };
+
+  function defaultColor(i) {
+    const palette = [
+      '#C4C7D0',
+      '#A8C7FA',
+      '#F2B8B5',
+      '#C4EDD2',
+      '#E8DEF8',
+      '#E6E1E5',
+      '#FDD663',
+      '#D7C0FF'
+    ];
+    return palette[i % palette.length];
+  }
+
+  function validateImportedItems(data) {
+    if (!Array.isArray(data)) {
+      throw new Error('Expected an array');
+    }
+    return data.map((item, i) => {
+      if (typeof item !== 'object' || item === null) {
+        throw new Error(`Invalid item at index ${i}`);
+      }
+      const label =
+        typeof item.label === 'string' && item.label.trim()
+          ? item.label.trim()
+          : `Activity ${i + 1}`;
+
+      const sRaw = typeof item.start === 'string' ? item.start : null;
+      const eRaw = typeof item.end === 'string' ? item.end : null;
+      const s = sRaw && parseTimeInput(sRaw);
+      const e = eRaw && parseTimeInput(eRaw);
+      if (!s || !e) {
+        throw new Error(`Invalid time at index ${i}`);
+      }
+
+      const color =
+        typeof item.color === 'string' && item.color.trim()
+          ? item.color
+          : defaultColor(i);
+
+      return {
+        label,
+        start: s,
+        end: e,
+        color
+      };
+    });
+  }
+
+  const model = {
+    init() {
+      try {
+        state.items = JSON.parse(localStorage.getItem('chronos_current')) || JSON.parse(JSON.stringify(DEF));
+      } catch (e) {
+        state.items = JSON.parse(JSON.stringify(DEF));
+      }
+      try {
+        state.savedPlans = JSON.parse(localStorage.getItem('chronos_saved_plans')) || [];
+      } catch (e) {
+        state.savedPlans = [];
+      }
+      try {
+        state.theme = localStorage.getItem('chronos_theme') || 'dark';
+      } catch (e) {
+        state.theme = 'dark';
+      }
+      this.pushHistory(false);
+    },
+    pushHistory(save = true) {
+      state.history = state.history.slice(0, state.historyIndex + 1);
+      state.history.push(JSON.stringify(state.items));
+      state.historyIndex++;
+      if (save) this.saveCurrent();
+    },
+    undo() {
+      if (state.historyIndex > 0) {
+        state.historyIndex--;
+        state.items = JSON.parse(state.history[state.historyIndex]);
+        return true;
+      }
+      return false;
+    },
+    redo() {
+      if (state.historyIndex < state.history.length - 1) {
+        state.historyIndex++;
+        state.items = JSON.parse(state.history[state.historyIndex]);
+        return true;
+      }
+      return false;
+    },
+    saveCurrent() {
+      localStorage.setItem('chronos_current', JSON.stringify(state.items));
+    },
+    savePlans() {
+      localStorage.setItem('chronos_saved_plans', JSON.stringify(state.savedPlans));
+    },
+    saveTheme() {
+      localStorage.setItem('chronos_theme', state.theme);
+    },
+    addItem() {
+      const items = state.items;
+      const last = items[items.length - 1] || { end: '00:00' };
+      const nextM = (toM(last.end) + 60) % 1440;
+      const h = Math.floor(nextM / 60);
+      const m = nextM % 60;
+      const nextT = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      items.push({ label: 'New Activity', start: last.end, end: nextT, color: '#C4C7D0' });
+      this.pushHistory();
+    },
+    deleteItem(index) {
+      state.items.splice(index, 1);
+      this.pushHistory();
+    },
+    clearItems() {
+      state.items = [];
+      this.pushHistory();
+    },
+    loadDefault() {
+      state.items = JSON.parse(JSON.stringify(DEF));
+      this.pushHistory();
+    },
+    loadPlan(index) {
+      state.items = JSON.parse(JSON.stringify(state.savedPlans[index].items));
+      this.pushHistory();
+    }
+  };
+
+  const view = {
+    initTheme() {
+      if (state.theme === 'light') document.body.classList.add('light-mode');
+      else document.body.classList.remove('light-mode');
+      const iconName = state.theme === 'light' ? 'sun' : 'moon';
+      ui.themeToggle.innerHTML = `<i data-lucide="${iconName}"></i>`;
+      ui.themeToggle.setAttribute('aria-pressed', state.theme === 'light' ? 'true' : 'false');
+      if (window.lucide && window.lucide.createIcons) {
+        lucide.createIcons();
+      }
+    },
+    drawClockFace() {
+      ui.clock.innerHTML = '';
+      const r = 160, cx = 210, cy = 210;
+      for (let i = 0; i < 24; i++) {
+        const isMajor = i % 6 === 0;
+        const ang = (i / 24) * 360 - 90;
+        const rad = ang * Math.PI / 180;
+        const len = isMajor ? 12 : 6;
+        const x1 = cx + (r - 10) * Math.cos(rad);
+        const y1 = cy + (r - 10) * Math.sin(rad);
+        const x2 = cx + (r - 10 - len) * Math.cos(rad);
+        const y2 = cy + (r - 10 - len) * Math.sin(rad);
+        
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+        if(isMajor) line.classList.add('major');
+        ui.clock.append(line);
+
+        if (isMajor) {
+          const tx = cx + (r - 35) * Math.cos(rad);
+          const ty = cy + (r - 35) * Math.sin(rad);
+          const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+          txt.setAttribute('x', tx); txt.setAttribute('y', ty + 4); 
+          txt.classList.add('tick-lbl');
+          txt.textContent = String(i).padStart(2, '0');
+          ui.clock.append(txt);
+        }
+      }
+    },
+    renderAll() {
+      this.renderClock();
+      this.renderLegend();
+      this.updateHub();
+      if (state.selectedIndex !== -1 && state.items[state.selectedIndex]) {
+        this.showHud(state.items[state.selectedIndex]);
+      }
+      if (window.lucide && window.lucide.createIcons) {
+        lucide.createIcons();
+      }
+    },
+    
+    // UPDATED: Donut Rendering & Midnight Splitting
+    renderClock() {
+      ui.svg.innerHTML = '';
+      const cx = 210, cy = 210;
+      const rOuter = 160;
+      const rInner = 110; 
+      const handleR = 135; 
+
+      const items = state.items.map((it, idx) => ({...it, idx}));
+      
+      items.forEach(it => {
+        const sM = toM(it.start);
+        let eM = toM(it.end);
+        
+        const segments = [];
+        if (eM < sM) {
+          segments.push({ start: sM, end: 1440 });
+          segments.push({ start: 0, end: eM });
+        } else {
+          segments.push({ start: sM, end: eM });
+        }
+
+        const pad = (it.idx % 3) * 2; 
+
+        segments.forEach(seg => {
+          if (Math.abs(seg.end - seg.start) < 1) return;
+          
+          const d = getDonutPath(seg.start, seg.end, rOuter - pad, rInner + pad, cx, cy);
+          
+          const p = document.createElementNS('http://www.w3.org/2000/svg','path'); 
+          p.setAttribute('d', d);
+          p.setAttribute('class', 'segment'); 
+          p.setAttribute('fill', it.color); 
+          p.setAttribute('data-idx', it.idx); 
+          p.setAttribute('role', 'button');
+          p.setAttribute('aria-label', `${it.label}, ${it.start} to ${it.end}`);
+          p.setAttribute('tabindex', '0');
+          ui.svg.append(p);
+        });
+
+        if (getD(it.start, it.end) > 0) {
+          const startAng = (sM / 1440) * 360 - 90;
+          const radS = startAng * Math.PI / 180;
+          let realEndM = eM < sM ? eM + 1440 : eM;
+          const endAng = (realEndM / 1440) * 360 - 90;
+          const radE = endAng * Math.PI / 180;
+
+          const createHandle = (x, y, type) => {
+             const h = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+             h.setAttribute('cx', x); h.setAttribute('cy', y);
+             h.setAttribute('r', 6);
+             h.setAttribute('class', 'segment-handle');
+             h.setAttribute('data-idx', it.idx);
+             h.setAttribute('data-handle', type);
+             return h;
+          };
+
+          ui.svg.append(createHandle(cx + handleR * Math.cos(radS), cy + handleR * Math.sin(radS), 'start'));
+          ui.svg.append(createHandle(cx + handleR * Math.cos(radE), cy + handleR * Math.sin(radE), 'end'));
+        }
+      });
+
+      if (state.selectedIndex !== -1) {
+        controller.highlight(state.selectedIndex);
+      }
+    },
+    
+    // UPDATED: Safe Legend
+    renderLegend() {
+      ui.leg.innerHTML = '';
+      const items = state.items;
+      
+      if (items.length === 0) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'l-item';
+        const info = document.createElement('div');
+        info.className = 'l-info';
+        const name = document.createElement('div');
+        name.className = 'l-name';
+        name.textContent = 'No activities';
+        info.appendChild(name);
+        emptyMsg.appendChild(info);
+        ui.leg.append(emptyMsg);
+        return;
+      }
+
+      const sorted = [...items]
+        .map((it, i) => ({...it, _idx: i}))
+        .sort((a,b)=>toM(a.start)-toM(b.start));
+      
+      sorted.forEach(it => {
+        const dur = getD(it.start, it.end);
+        const l = document.createElement('div');
+        l.className = 'l-item';
+        l.setAttribute('data-idx', it._idx);
+        l.setAttribute('role', 'listitem');
+        l.setAttribute('tabindex', '0');
+        if (it._idx === state.selectedIndex) l.classList.add('active');
+
+        const dot = document.createElement('div');
+        dot.className = 'l-dot';
+        dot.style.background = it.color;
+
+        const info = document.createElement('div');
+        info.className = 'l-info';
+
+        const name = document.createElement('div');
+        name.className = 'l-name';
+        name.textContent = it.label;
+
+        const time = document.createElement('div');
+        time.className = 'l-time';
+        time.textContent = `${it.start} - ${it.end}`;
+
+        const durEl = document.createElement('div');
+        durEl.className = 'l-dur';
+        durEl.textContent = formatDur(dur);
+
+        info.appendChild(name);
+        info.appendChild(time);
+        l.appendChild(dot);
+        l.appendChild(info);
+        l.appendChild(durEl);
+
+        ui.leg.append(l);
+      });
+    },
+    showHud(it) {
+      ui.hudNameText.textContent = it.label;
+      ui.hudTimeText.textContent = `${it.start} - ${it.end}`;
+      ui.hudNameInput.value = it.label;
+      ui.hudStartInput.value = it.start;
+      ui.hudEndInput.value = it.end;
+      ui.hudError.style.display = 'none';
+      ui.hudStartInput.classList.remove('error');
+      ui.hudEndInput.classList.remove('error');
+      ui.hud.classList.add('visible');
+    },
+    hideHud() { ui.hud.classList.remove('visible'); },
+    updateHub() {
+      const now = new Date();
+      const mins = now.getHours() * 60 + now.getMinutes();
+      const deg = (mins / 1440) * 360;
+      ui.marker.style.transform = `rotate(${deg}deg)`;
+
+      ui.hubTime.style.opacity = '0.7';
+      ui.hubTime.style.transform = 'translateY(-2px)';
+      setTimeout(() => {
+        ui.hubTime.style.opacity = '1';
+        ui.hubTime.style.transform = 'translateY(0)';
+      }, 120);
+
+      ui.hubTime.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+      if (state.items.length === 0) {
+        ui.hubAct.textContent = 'No activities planned';
+        ui.hubRem.textContent = 'Tap the + button to add one.';
+        return;
+      }
+
+      const items = state.items;
+      let current = items.find(it => {
+        const s = toM(it.start), e = toM(it.end);
+        if (e < s) return mins >= s || mins < e; 
+        return mins >= s && mins < e;
+      });
+
+      if (current) {
+        ui.hubAct.textContent = current.label;
+        let endM = toM(current.end);
+        if (endM < mins) endM += 1440;
+        const diff = endM - mins;
+        const rh = Math.floor(diff / 60), rm = diff % 60;
+        ui.hubRem.textContent = rh > 0 ? `${rh}h ${rm}m left` : `${rm}m left`;
+      } else {
+        ui.hubAct.textContent = 'Free Time';
+        ui.hubRem.textContent = '';
+      }
+    },
+    renderEditor() {
+      ui.rows.innerHTML = '';
+      const items = state.items;
+      const map = new Array(1440).fill(0);
+      items.forEach(x => {
+        const s = toM(x.start), d = getD(x.start,x.end);
+        for (let k = 0; k < d; k++) map[(s + k) % 1440]++;
+      });
+
+      let total = 0;
+      items.forEach((it, i) => {
+        const d = getD(it.start, it.end);
+        total += d;
+        const s = toM(it.start);
+        let conflict = false;
+        for (let k = 0; k < d; k++) if (map[(s + k) % 1440] > 1) { conflict = true; break; }
+
+        const el = document.createElement('div');
+        el.className = `editor-card${conflict ? ' conflict' : ''}`;
+
+        const colorSwatch = document.createElement('div');
+        colorSwatch.className = 'color-swatch';
+        colorSwatch.style.background = it.color;
+
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.className = 'edit-color';
+        colorInput.setAttribute('data-idx', String(i));
+        colorInput.value = it.color;
+        colorInput.setAttribute('aria-label', 'Change Color');
+        colorSwatch.appendChild(colorInput);
+
+        const labelInput = document.createElement('input');
+        labelInput.className = 'inp-title edit-label';
+        labelInput.setAttribute('data-idx', String(i));
+        labelInput.value = it.label;
+        labelInput.placeholder = 'Activity Name';
+        labelInput.setAttribute('aria-label', 'Activity Name');
+
+        const timeBtn = document.createElement('button');
+        timeBtn.type = 'button';
+        timeBtn.className = 'time-btn edit-time';
+        timeBtn.setAttribute('data-idx', String(i));
+        timeBtn.setAttribute('aria-label', 'Set Time Range');
+        timeBtn.textContent = `${it.start} - ${it.end}`;
+
+        const durBadge = document.createElement('div');
+        durBadge.className = 'dur-badge';
+        durBadge.textContent = formatDur(d);
+
+        const delIcon = document.createElement('div');
+        delIcon.className = 'del-icon edit-delete';
+        delIcon.setAttribute('data-idx', String(i));
+        delIcon.setAttribute('aria-label', 'Delete Activity');
+        delIcon.innerHTML = '<i data-lucide="trash-2"></i>';
+
+        el.appendChild(colorSwatch);
+        el.appendChild(labelInput);
+        el.appendChild(timeBtn);
+        el.appendChild(durBadge);
+        el.appendChild(delIcon);
+
+        ui.rows.append(el);
+      });
+
+      const pct = (total / (24*60)) * 100;
+      ui.cFill.style.width = `${Math.min(100, pct)}%`;
+      ui.cTxt.textContent = `${formatDur(total)} Scheduled`;
+      ui.cRem.textContent = `${formatDur(Math.max(0, 1440 - total))} Free`;
+      ui.cFill.className = `gauge-filled ${total > 24*60 ? 'over' : ''}`;
+      $('btnSaveChanges').disabled = total > 24*60;
+      if (window.lucide && window.lucide.createIcons) {
+        lucide.createIcons();
+      }
+    },
+    renderPresets() {
+      ui.menuP.innerHTML = '';
+      const header = document.createElement('div');
+      header.className = 'dd-header';
+      header.textContent = 'My Presets';
+      ui.menuP.appendChild(header);
+
+      if (state.savedPlans.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.padding = '12px 16px';
+        empty.style.fontSize = '13px';
+        empty.style.color = '#777';
+        empty.style.fontStyle = 'italic';
+        empty.textContent = 'No saved plans';
+        ui.menuP.appendChild(empty);
+      } else {
+        state.savedPlans.forEach((p, i) => {
+          const row = document.createElement('div');
+          row.className = 'dd-plan-row';
+          row.setAttribute('data-action', 'load');
+          row.setAttribute('data-idx', String(i));
+          row.setAttribute('role', 'menuitem');
+
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = p.name;
+
+          const del = document.createElement('div');
+          del.className = 'preset-delete';
+          del.setAttribute('data-action', 'delete');
+          del.setAttribute('data-idx', String(i));
+          del.setAttribute('aria-label', 'Delete Preset');
+          const icon = document.createElement('i');
+          icon.setAttribute('data-lucide', 'trash-2');
+          icon.style.width = '16px';
+          icon.style.height = '16px';
+          icon.style.opacity = '0.6';
+          del.appendChild(icon);
+
+          row.appendChild(nameSpan);
+          row.appendChild(del);
+          ui.menuP.appendChild(row);
+        });
+      }
+
+      const divider1 = document.createElement('div');
+      divider1.className = 'dd-divider';
+      ui.menuP.appendChild(divider1);
+
+      const headerSys = document.createElement('div');
+      headerSys.className = 'dd-header';
+      headerSys.textContent = 'System';
+      ui.menuP.appendChild(headerSys);
+
+      const restore = document.createElement('div');
+      restore.className = 'dd-item';
+      restore.setAttribute('data-action', 'reset-default');
+      restore.setAttribute('role', 'menuitem');
+      restore.innerHTML = '<i data-lucide="rotate-ccw"></i> Restore Default';
+      ui.menuP.appendChild(restore);
+
+      const divider2 = document.createElement('div');
+      divider2.className = 'dd-divider';
+      ui.menuP.appendChild(divider2);
+
+      const saveCurrent = document.createElement('div');
+      saveCurrent.className = 'dd-item';
+      saveCurrent.setAttribute('data-action', 'save-current');
+      saveCurrent.setAttribute('role', 'menuitem');
+      saveCurrent.style.color = 'var(--md-sys-color-primary)';
+      saveCurrent.innerHTML = '<i data-lucide="save"></i> Save Current As...';
+      ui.menuP.appendChild(saveCurrent);
+
+      const clear = document.createElement('div');
+      clear.className = 'dd-item';
+      clear.setAttribute('data-action', 'clear');
+      clear.setAttribute('role', 'menuitem');
+      clear.style.color = 'var(--md-sys-color-error)';
+      clear.innerHTML = '<i data-lucide="ban"></i> Clear Board';
+      ui.menuP.appendChild(clear);
+
+      const note = document.createElement('div');
+      note.style.padding = '8px 16px 4px';
+      note.style.fontSize = '11px';
+      note.style.color = 'var(--md-sys-color-outline)';
+      note.style.borderTop = '1px solid var(--md-sys-color-surface-container-high)';
+      note.style.marginTop = '4px';
+      note.textContent = 'Presets are stored on this device only.';
+      ui.menuP.appendChild(note);
+
+      if (window.lucide && window.lucide.createIcons) {
+        lucide.createIcons();
+      }
+    },
+    renderClockDial() {
+      ui.dial.innerHTML = '<div class="clk-center-dot"></div>';
+      const val = state.ts.mode === 'start' ? state.ts.start : state.ts.end;
+      const [hStr, mStr] = val.split(':');
+      const h = parseInt(hStr) || 0;
+      const m = parseInt(mStr) || 0;
+      const isH = state.ts.unit === 'h';
+      const cnt = isH ? 24 : 12;
+
+      for (let j = 0; j < cnt; j++) {
+        let n = j, r = 110;
+        if (isH) {
+          if (j > 11) r = 75;
+        } else {
+          n = j * 5;
+        }
+        const a = (n % 12) * 30 - 90;
+        const rad = a * Math.PI / 180;
+        const x = 128 + r * Math.cos(rad);
+        const y = 128 + r * Math.sin(rad);
+
+        const d = document.createElement('div');
+        const isSel = isH ? (n === h) : (Math.abs(n - m) < 3);
+        d.className = `clk-num ${isSel ? 'sel' : ''}`;
+        d.innerText = n;
+        d.style.left = (x - 16) + 'px';
+        d.style.top = (y - 16) + 'px';
+
+        d.addEventListener('click', () => {
+          if (isH) {
+            ui.clkH.value = String(n).padStart(2,'0');
+            controller.syncTimeState();
+            state.ts.unit = 'm';
+            ui.clkM.focus();
+            view.renderClockDial();
+          } else {
+            ui.clkM.value = String(n).padStart(2,'0');
+            controller.syncTimeState();
+            if (state.ts.mode === 'start') {
+              controller.selTab('end');
+            } else {
+              state.ts.unit = 'h';
+              view.renderClockDial();
+            }
+          }
+        });
+        ui.dial.append(d);
+      }
+    }
+  };
+
+  let lastDragFrame = 0;
+
+  const controller = {
+    tickInterval: null,
+    hudErrorTimeout: null,
+    init() {
+      model.init();
+      view.initTheme();
+      view.drawClockFace();
+      view.renderAll();
+      this.startClock();
+      this.bindGlobalEvents();
+
+      if (!localStorage.getItem('chronos_onboarded_main') && ui.hintMain) {
+        setTimeout(() => ui.hintMain.classList.add('visible'), 300);
+      }
+    },
+    startClock() {
+      view.updateHub();
+      this.tickInterval = setInterval(() => view.updateHub(), 30000);
+    },
+    bindGlobalEvents() {
+      $('btnPresets').addEventListener('click', e => this.menu('presets', e));
+      $('btnData').addEventListener('click', e => this.menu('data', e));
+      ui.themeToggle.addEventListener('click', () => this.toggleTheme());
+
+      $('btnExport').addEventListener('click', () => this.exp());
+      $('fileInput').addEventListener('change', e => this.imp(e.target));
+
+      $('tgLeg').addEventListener('click', () => this.toggleLeg());
+      $('btnWheelEdit').addEventListener('click', () => this.toggleWheelEdit());
+      $('btnEdit').addEventListener('click', () => this.openEditor());
+
+      $('btnUndo').addEventListener('click', () => this.undo());
+      $('btnRedo').addEventListener('click', () => this.redo());
+      $('btnAdd').addEventListener('click', () => this.add());
+      $('btnSaveChanges').addEventListener('click', () => this.saveEdit());
+      $('btnCloseEditor').addEventListener('click', () => this.cancelEdit());
+
+      $('btnSaveCancel').addEventListener('click', () => this.closeSave());
+      $('btnSaveConfirm').addEventListener('click', () => this.confirmSave());
+
+      $('btnDeleteCancel').addEventListener('click', () => this.closeConfirm());
+      $('btnDeleteConfirm').addEventListener('click', () => this.finalizeDelete());
+
+      $('btnResetCancel').addEventListener('click', () => this.closeReset());
+      $('btnResetConfirm').addEventListener('click', () => this.confirmReset());
+
+      $('btnClearCancel').addEventListener('click', () => this.closeClear());
+      $('btnClearConfirm').addEventListener('click', () => this.confirmClear());
+
+      ui.tabS.addEventListener('click', () => this.selTab('start'));
+      ui.tabE.addEventListener('click', () => this.selTab('end'));
+      ui.clkH.addEventListener('input', e => this.onH(e.target));
+      ui.clkM.addEventListener('input', e => this.onM(e.target));
+      $('btnClkCancel').addEventListener('click', () => ui.clk.classList.remove('show'));
+      $('btnClkApply').addEventListener('click', () => this.saveTS());
+
+      ui.menuP.addEventListener('click', e => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+        const action = target.dataset.action;
+        const idx = target.dataset.idx ? Number(target.dataset.idx) : null;
+        if (action === 'load' && idx != null) this.loadPlan(idx);
+        else if (action === 'delete' && idx != null) this.delPlan(idx, e);
+        else if (action === 'reset-default') this.openReset();
+        else if (action === 'save-current') this.saveCurrent();
+        else if (action === 'clear') this.openClear();
+      });
+
+      ui.rows.addEventListener('input', e => {
+        const t = e.target;
+        const idx = t.dataset.idx ? Number(t.dataset.idx) : null;
+        if (idx == null) return;
+        if (t.classList.contains('edit-label')) {
+          this.upd(idx, 'label', t.value);
+        } else if (t.classList.contains('edit-color')) {
+          this.upd(idx, 'color', t.value);
+        }
+      });
+      ui.rows.addEventListener('click', e => {
+        const timeBtn = e.target.closest('.edit-time');
+        if (timeBtn) {
+          const idx = Number(timeBtn.dataset.idx);
+          this.openTS(idx, 'start');
+          return;
+        }
+        const delBtn = e.target.closest('.edit-delete');
+        if (delBtn) {
+          const idx = Number(delBtn.dataset.idx);
+          this.del(idx);
+        }
+      });
+
+      ui.hudNameInput.addEventListener('focus', () => { });
+      ui.hudNameInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.target.blur();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          this.resetHudInputs();
+          e.target.blur();
+        }
+      });
+      ui.hudNameInput.addEventListener('blur', () => this.commitHudInputs());
+
+      [ui.hudStartInput, ui.hudEndInput].forEach(inp => {
+        inp.addEventListener('focus', () => {
+          state.hudLastField = (inp === ui.hudStartInput) ? 'start' : 'end';
+        });
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            e.target.blur();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            this.resetHudInputs();
+            e.target.blur();
+          }
+        });
+        inp.addEventListener('blur', () => this.commitHudInputs());
+      });
+
+      ui.hudTimeRow.addEventListener('click', e => {
+        if (!state.editMode) return;
+        if (e.target === ui.hudStartInput || e.target === ui.hudEndInput || e.target.closest('#hudTimePickerBtn')) return;
+        if (state.selectedIndex === -1 || !state.items[state.selectedIndex]) return;
+        const field = state.hudLastField || 'start';
+        this.openTS(state.selectedIndex, field);
+      });
+
+      ui.hudTimePickerBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!state.editMode) return;
+        if (state.selectedIndex === -1 || !state.items[state.selectedIndex]) return;
+        const field = state.hudLastField || 'start';
+        this.openTS(state.selectedIndex, field);
+      });
+
+     document.onclick = e => {
+  if (!e.target.closest('.dropdown-wrapper')) this.closeMenus();
+  if (e.target.id === 'modal') this.cancelEdit();
+  if (e.target.id === 'saveModal') this.closeSave();
+  if (e.target.id === 'confirmModal') this.closeConfirm();
+  if (e.target.id === 'resetModal') this.closeReset();
+  if (e.target.id === 'clearModal') this.closeClear();
+
+  if (
+    !e.target.closest('path') &&
+    !e.target.closest('.segment-handle') &&
+    !e.target.closest('.l-item') &&
+    !e.target.closest('.layout-dock') &&
+    !e.target.closest('.hud') &&          // 🔹 NEW: clicks inside HUD no longer clear selection
+    state.selectedIndex !== -1
+  ) {
+    this.select(-1);
+  }
+};
+
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          if (ui.clk.classList.contains('show')) ui.clk.classList.remove('show');
+          else if (ui.saveMod.classList.contains('open')) this.closeSave();
+          else if (ui.confMod.classList.contains('open')) this.closeConfirm();
+          else if (ui.resetMod.classList.contains('open')) this.closeReset();
+          else if (ui.clearMod.classList.contains('open')) this.closeClear();
+          else if (ui.mod.classList.contains('open')) this.cancelEdit();
+        }
+      });
+
+      // Updated: Event Delegation for Interactions
+      ui.svg.addEventListener('click', e => {
+        const seg = e.target.closest('.segment');
+        if (seg) {
+          e.stopPropagation();
+          const idx = Number(seg.dataset.idx);
+          this.select(idx);
+        }
+      });
+      ui.svg.addEventListener('mouseenter', e => {
+        const seg = e.target.closest('.segment');
+        if (seg) this.hover(Number(seg.dataset.idx), true);
+      }, true);
+      ui.svg.addEventListener('mouseleave', () => this.hover(-1, false), true);
+
+      ui.leg.addEventListener('click', e => {
+        const it = e.target.closest('.l-item');
+        if (it) {
+          e.stopPropagation();
+          this.select(Number(it.dataset.idx));
+        }
+      });
+
+      // Keyboard support for legend items
+      ui.leg.addEventListener('keydown', e => {
+        const item = e.target.closest('.l-item');
+        if (!item) return;
+        const idx = Number(item.getAttribute('data-idx'));
+        if (Number.isNaN(idx)) return;
+
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.select(idx);
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          this.moveLegendFocus(idx, +1);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          this.moveLegendFocus(idx, -1);
+        }
+      });
+
+      // Keyboard support for segments
+      ui.svg.addEventListener('keydown', e => {
+        const seg = e.target.closest('.segment');
+        if (!seg) return;
+        const idx = Number(seg.getAttribute('data-idx'));
+        if (Number.isNaN(idx)) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.select(idx);
+        }
+      });
+
+      ui.chartSvg.addEventListener('pointerdown', this.onPointerDown.bind(this));
+      window.addEventListener('pointermove', this.onPointerMove.bind(this));
+      window.addEventListener('pointerup', this.onPointerUp.bind(this));
+    },
+    closeMenus() {
+      document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
+    },
+    menu(id, e) {
+      e.stopPropagation();
+      const m = id === 'presets' ? $('menuPresets') : $('menuData');
+      const open = m.classList.contains('show');
+      this.closeMenus();
+      if (!open) {
+        if (id === 'presets') view.renderPresets();
+        m.classList.add('show');
+      }
+    },
+    toggleLeg() {
+      state.legendOpen = !state.legendOpen;
+      $('tgLeg').classList.toggle('active');
+      ui.pan.classList.toggle('hidden');
+      if (!state.legendOpen && state.selectedIndex !== -1) {
+        view.showHud(state.items[state.selectedIndex]);
+      } else if (!state.editMode) {
+        view.hideHud();
+      }
+    },
+    toggleWheelEdit() {
+      state.editMode = !state.editMode;
+      document.body.classList.toggle('edit-mode', state.editMode);
+      ui.btnWheelEdit.classList.toggle('active', state.editMode);
+      ui.btnWheelEdit.setAttribute('aria-pressed', state.editMode ? 'true' : 'false');
+
+      if (state.editMode && state.selectedIndex !== -1 && state.items[state.selectedIndex]) {
+        view.showHud(state.items[state.selectedIndex]);
+        setTimeout(() => ui.hudNameInput.focus(), 50);
+      } else if (!state.editMode) {
+        view.hideHud();
+      }
+
+      if (state.editMode) {
+        if (!localStorage.getItem('chronos_seen_wheel') && ui.editBadge) {
+          localStorage.setItem('chronos_seen_wheel', '1');
+          ui.editBadge.textContent = 'Wheel editing on · drag segments or handles';
+          setTimeout(() => {
+            if (state.editMode && ui.editBadge) {
+              ui.editBadge.textContent = 'Wheel editing on';
+            }
+          }, 3500);
+        } else if (ui.editBadge) {
+          ui.editBadge.textContent = 'Wheel editing on';
+        }
+      }
+    },
+    dismissMainHint() {
+      if (!ui.hintMain) return;
+      if (!localStorage.getItem('chronos_onboarded_main')) {
+        localStorage.setItem('chronos_onboarded_main', '1');
+      }
+      ui.hintMain.classList.remove('visible');
+    },
+    select(i) {
+      state.selectedIndex = i;
+      this.highlight(i);
+      if (i !== -1) this.dismissMainHint();
+    },
+    highlight(i) {
+      Array.from(ui.svg.children).forEach(p => {
+        if (p.classList) p.classList.remove('active');
+      });
+      Array.from(ui.leg.children).forEach(l => {
+        l.classList.remove('active');
+        l.removeAttribute('aria-current');
+      });
+      if (i !== -1 && state.items[i]) {
+        const segments = ui.svg.querySelectorAll(`path.segment[data-idx="${i}"]`);
+        segments.forEach(p => p.classList.add('active'));
+
+        const l = ui.leg.querySelector(`div.l-item[data-idx="${i}"]`);
+        if (l) {
+          l.classList.add('active');
+          l.setAttribute('aria-current', 'true');
+          if (state.legendOpen) l.scrollIntoView({ behavior:'smooth', block:'nearest' });
+        }
+        if (state.editMode || !state.legendOpen) {
+          view.showHud(state.items[i]);
+        }
+      } else {
+        view.hideHud();
+      }
+    },
+    hover(i, act) {
+      if (state.selectedIndex !== -1) return;
+      if (act) {
+        this.highlight(i);
+        if (!state.legendOpen) view.showHud(state.items[i]);
+      } else {
+        this.highlight(-1);
+      }
+    },
+    moveLegendFocus(currentIdx, delta) {
+      const items = Array.from(ui.leg.querySelectorAll('.l-item[data-idx]'));
+      if (!items.length) return;
+      const order = items.map(el => Number(el.dataset.idx));
+      const pos = order.indexOf(currentIdx);
+      if (pos === -1) return;
+      let nextPos = pos + delta;
+      if (nextPos < 0) nextPos = items.length - 1;
+      if (nextPos >= items.length) nextPos = 0;
+      const nextIdx = order[nextPos];
+      const nextEl = items[nextPos];
+      if (nextEl) {
+        nextEl.focus();
+        this.select(nextIdx);
+      }
+    },
+    openEditor() {
+      this.dismissMainHint();
+      state.backupItems = JSON.stringify(state.items);
+      model.pushHistory();
+      view.renderEditor();
+      ui.mod.classList.add('open');
+    },
+    cancelEdit() {
+      if (state.backupItems) {
+        state.items = JSON.parse(state.backupItems);
+        model.pushHistory();
+      }
+      ui.mod.classList.remove('open');
+      view.renderAll();
+    },
+    saveEdit() {
+      ui.mod.classList.remove('open');
+      view.renderAll();
+      showSnackbar('Schedule updated.');
+    },
+    undo() {
+      if (model.undo()) {
+        view.renderAll();
+        if (ui.mod.classList.contains('open')) view.renderEditor();
+      }
+    },
+    redo() {
+      if (model.redo()) {
+        view.renderAll();
+        if (ui.mod.classList.contains('open')) view.renderEditor();
+      }
+    },
+    add() {
+      model.addItem();
+      view.renderEditor();
+      ui.rows.scrollTop = ui.rows.scrollHeight;
+      view.renderAll();
+    },
+    del(i) {
+      model.deleteItem(i);
+      view.renderEditor();
+      view.renderAll();
+    },
+    upd(i,k,v) {
+      state.items[i][k] = v;
+      model.saveCurrent();
+      view.renderEditor();
+      view.renderAll();
+    },
+    saveCurrent() {
+      this.closeMenus();
+      ui.saveInp.value = '';
+      ui.saveMod.classList.add('open');
+      setTimeout(() => ui.saveInp.focus(), 80);
+    },
+    closeSave() {
+      ui.saveMod.classList.remove('open');
+    },
+    confirmSave() {
+      const name = ui.saveInp.value.trim() || "Untitled Routine";
+      state.savedPlans.push({ name, items: JSON.parse(JSON.stringify(state.items)) });
+      model.savePlans();
+      view.renderPresets();
+      this.closeSave();
+      showSnackbar('Preset saved.');
+    },
+    loadPlan(i) {
+      model.loadPlan(i);
+      view.renderAll();
+      this.closeMenus();
+      showSnackbar('Preset loaded.');
+    },
+    delPlan(i, e) {
+      e.stopPropagation();
+      state.deleteIndex = i;
+      ui.confMod.classList.add('open');
+    },
+    finalizeDelete() {
+      if (state.deleteIndex > -1) {
+        state.savedPlans.splice(state.deleteIndex, 1);
+        model.savePlans();
+        view.renderPresets();
+        showSnackbar('Preset deleted.');
+      }
+      this.closeConfirm();
+    },
+    closeConfirm() {
+      ui.confMod.classList.remove('open');
+      state.deleteIndex = -1;
+    },
+    openReset() {
+      ui.resetMod.classList.add('open');
+    },
+    closeReset() {
+      ui.resetMod.classList.remove('open');
+    },
+    confirmReset() {
+      model.loadDefault();
+      view.renderAll();
+      this.closeReset();
+      this.closeMenus();
+      showSnackbar('Default schedule restored.');
+    },
+    openClear() {
+      ui.clearMod.classList.add('open');
+    },
+    closeClear() {
+      ui.clearMod.classList.remove('open');
+    },
+    confirmClear() {
+      model.clearItems();
+      view.renderAll();
+      this.closeClear();
+      this.closeMenus();
+      showSnackbar('Schedule cleared.');
+    },
+    exp() {
+      this.closeMenus();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(state.items)], {type:'application/json'}));
+      a.download = 'chronos_plan.json';
+      a.click();
+      showSnackbar('Plan exported.');
+    },
+    imp(el) {
+      const r = new FileReader();
+      r.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          const items = validateImportedItems(data);
+          if (!items.length) throw new Error('Empty plan');
+          state.items = items;
+          model.pushHistory();
+          view.renderAll();
+          showSnackbar('Plan imported successfully.');
+        } catch (x) {
+          showSnackbar('Couldn\'t import: invalid Chronos plan.');
+        }
+        this.closeMenus();
+      };
+      if (el.files[0]) r.readAsText(el.files[0]);
+    },
+    toggleTheme() {
+      ui.themeToggle.classList.add('theme-switching');
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      model.saveTheme();
+      view.initTheme();
+      showSnackbar(state.theme === 'light' ? 'Light mode on.' : 'Dark mode on.');
+      setTimeout(() => {
+        ui.themeToggle.classList.remove('theme-switching');
+      }, 250);
+    },
+
+    openTS(i, field = 'start') {
+      const item = state.items[i];
+      state.ts = { idx: i, start: item.start, end: item.end, mode: field, unit: 'h' };
+      this.selTab(field);
+      ui.clk.classList.add('show');
+    },
+    selTab(mode) {
+      state.ts.mode = mode;
+      ui.tabS.className = `clk-t-opt ${mode === 'start' ? 'active' : ''}`;
+      ui.tabS.setAttribute('aria-selected', mode === 'start');
+      ui.tabE.className = `clk-t-opt ${mode === 'end' ? 'active' : ''}`;
+      ui.tabE.setAttribute('aria-selected', mode === 'end');
+      const val = mode === 'start' ? state.ts.start : state.ts.end;
+      const [h,m] = val.split(':');
+      ui.clkH.value = h;
+      ui.clkM.value = m;
+      ui.clkH.focus();
+      state.ts.unit = 'h';
+      view.renderClockDial();
+    },
+    onH(el) {
+      let v = el.value.replace(/\D/g,'');
+      if (parseInt(v) > 23) v = '23';
+      el.value = v;
+      if (v.length === 2) ui.clkM.focus();
+      this.syncTimeState();
+    },
+    onM(el) {
+      let v = el.value.replace(/\D/g,'');
+      if (parseInt(v) > 59) v = '59';
+      el.value = v;
+      this.syncTimeState();
+    },
+    syncTimeState() {
+      const h = ui.clkH.value.padStart(2,'0');
+      const m = ui.clkM.value.padStart(2,'0');
+      if (state.ts.mode === 'start') state.ts.start = `${h}:${m}`;
+      else state.ts.end = `${h}:${m}`;
+      if (h.length > 0 && m.length > 0) view.renderClockDial();
+    },
+    saveTS() {
+      const idx = state.ts.idx;
+      state.items[idx].start = state.ts.start;
+      state.items[idx].end = state.ts.end;
+      model.pushHistory();
+      view.renderEditor();
+      view.renderAll();
+      ui.clk.classList.remove('show');
+    },
+
+    resetHudInputs() {
+      if (state.selectedIndex === -1) return;
+      const it = state.items[state.selectedIndex];
+      ui.hudNameInput.value = it.label;
+      ui.hudStartInput.value = it.start;
+      ui.hudEndInput.value = it.end;
+      ui.hudError.style.display = 'none';
+      ui.hudStartInput.classList.remove('error');
+      ui.hudEndInput.classList.remove('error');
+    },
+    commitHudInputs() {
+      if (!state.editMode || state.selectedIndex === -1) return;
+      const it = state.items[state.selectedIndex];
+      let changed = false;
+
+      const newName = ui.hudNameInput.value.trim();
+      if (newName && newName !== it.label) {
+        it.label = newName;
+        changed = true;
+      }
+
+      const newStartStr = ui.hudStartInput.value.trim();
+      const newEndStr = ui.hudEndInput.value.trim();
+
+      const parsedStart = parseTimeInput(newStartStr);
+      const parsedEnd = parseTimeInput(newEndStr);
+
+      ui.hudError.style.display = 'none';
+      ui.hudStartInput.classList.remove('error');
+      ui.hudEndInput.classList.remove('error');
+      clearTimeout(this.hudErrorTimeout);
+
+      if (!parsedStart || !parsedEnd) {
+        ui.hudError.textContent = 'Time must be HH:MM in 24h format.';
+        ui.hudError.style.display = 'block';
+        if (!parsedStart) ui.hudStartInput.classList.add('error');
+        if (!parsedEnd) ui.hudEndInput.classList.add('error');
+        this.hudErrorTimeout = setTimeout(() => {
+          ui.hudError.style.display = 'none';
+          ui.hudStartInput.classList.remove('error');
+          ui.hudEndInput.classList.remove('error');
+        }, 2500);
+        this.resetHudInputs();
+        return;
+      }
+
+      if (parsedStart !== it.start) {
+        it.start = parsedStart;
+        changed = true;
+      }
+      if (parsedEnd !== it.end) {
+        it.end = parsedEnd;
+        changed = true;
+      }
+
+      if (changed) {
+        model.pushHistory();
+        view.renderAll();
+      } else {
+        view.showHud(it);
+      }
+    },
+
+    getPointerAngle(evt) {
+      const rect = ui.chartSvg.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = evt.clientX - cx;
+      const dy = evt.clientY - cy;
+      const rad = Math.atan2(dy, dx);
+      return rad * 180 / Math.PI;
+    },
+    onPointerDown(evt) {
+      if (!state.editMode) return;
+      const target = evt.target;
+      if (target.classList.contains('segment-handle')) {
+        const idx = Number(target.getAttribute('data-idx'));
+        const handle = target.getAttribute('data-handle');
+        const item = state.items[idx];
+        if (!item) return;
+        state.pendingDrag = {
+          type: 'handle',
+          mode: 'resize',
+          handle,
+          idx,
+          pointerId: evt.pointerId,
+          pointerType: evt.pointerType,
+          target,
+          startX: evt.clientX,
+          startY: evt.clientY,
+          startTime: evt.timeStamp || performance.now()
+        };
+        this.select(idx);
+        evt.preventDefault();
+        return;
+      }
+      if (target.classList.contains('segment')) {
+        const idx = Number(target.getAttribute('data-idx'));
+        const item = state.items[idx];
+        if (!item) return;
+        state.pendingDrag = {
+          type: 'segment',
+          mode: 'move',
+          idx,
+          pointerId: evt.pointerId,
+          pointerType: evt.pointerType,
+          target,
+          startX: evt.clientX,
+          startY: evt.clientY,
+          startTime: evt.timeStamp || performance.now()
+        };
+        this.select(idx);
+        evt.preventDefault();
+      }
+    },
+    maybeStartDrag(evt) {
+      const pd = state.pendingDrag;
+      if (!pd || evt.pointerId !== pd.pointerId) return;
+      const dx = evt.clientX - pd.startX;
+      const dy = evt.clientY - pd.startY;
+      const dist2 = dx*dx + dy*dy;
+      const elapsed = (evt.timeStamp || performance.now()) - pd.startTime;
+      const threshold2 = pd.pointerType === 'touch' ? 64 : 9;
+      const longPress = pd.pointerType === 'touch' && elapsed > 220;
+      if (dist2 < threshold2 && !longPress) return;
+
+      const item = state.items[pd.idx];
+      if (!item) {
+        state.pendingDrag = null;
+        return;
+      }
+
+      if (pd.mode === 'resize') {
+        state.drag = {
+          mode: 'resize',
+          handle: pd.handle,
+          idx: pd.idx,
+          startMinutes: toM(item.start),
+          endMinutes: toM(item.end),
+          pointerId: pd.pointerId
+        };
+      } else {
+        const startMinutes = toM(item.start);
+        const endMinutes = toM(item.end);
+        const angle = this.getPointerAngle(evt);
+        const nowMinutes = Math.round(angleToMinutes(angle));
+        const offset = nowMinutes - startMinutes;
+        state.drag = {
+          mode: 'move',
+          idx: pd.idx,
+          startMinutes,
+          endMinutes,
+          offset,
+          pointerId: pd.pointerId
+        };
+      }
+
+      document.body.classList.add('dragging');
+      try {
+        pd.target.setPointerCapture(pd.pointerId);
+      } catch (e) {}
+      state.pendingDrag = null;
+    },
+    
+    // UPDATED: Magnetic Snapping Logic + Throttle
+    onPointerMove(evt) {
+      if (!state.drag && state.pendingDrag) {
+        this.maybeStartDrag(evt);
+      }
+      if (!state.drag || evt.pointerId !== state.drag.pointerId) return;
+
+      const now = performance.now();
+      if (now - lastDragFrame < 16) return; // ~60fps max
+      lastDragFrame = now;
+
+      const drag = state.drag;
+      const angle = this.getPointerAngle(evt);
+      let rawMins = angleToMinutes(angle);
+      rawMins = (rawMins + 1440) % 1440;
+
+      let mins;
+      const m = rawMins;
+      const distToHour = Math.min(m % 60, 60 - (m % 60));
+      const distToHalf = Math.abs((m % 60) - 30);
+      const THRESHOLD = 10; 
+
+      if (distToHour < THRESHOLD) {
+         mins = Math.round(m / 60) * 60; // Snap to Hour
+      } else if (distToHalf < THRESHOLD) {
+         mins = Math.round(m / 30) * 30; // Snap to Half-Hour
+      } else {
+         mins = Math.round(m / 5) * 5; // Micro-snap
+      }
+      
+      mins = (mins + 1440) % 1440;
+
+      if (drag.mode === 'resize') {
+        let start = drag.startMinutes;
+        let end = drag.endMinutes;
+        if (drag.handle === 'start') {
+          start = mins;
+        } else {
+          end = mins;
+        }
+        
+        let dur = end - start;
+        if (dur < 0) dur += 1440;
+        if (dur < 15) return; 
+
+        state.items[drag.idx].start = minutesToString(start);
+        state.items[drag.idx].end   = minutesToString(end);
+      } else if (drag.mode === 'move') {
+        let length = drag.endMinutes - drag.startMinutes;
+        if (length < 0) length += 1440;
+
+        let newStart = mins - drag.offset;
+        // Align block start to nearest grid for cleaner drops
+        const sMod = newStart % 30;
+        if (sMod < 5 || sMod > 25) {
+           newStart = Math.round(newStart / 30) * 30;
+        } else {
+           newStart = Math.round(newStart / 5) * 5;
+        }
+        newStart = ((newStart % 1440) + 1440) % 1440;
+
+        let newEnd = newStart + length;
+        newEnd = Math.round(newEnd);
+        newEnd = ((newEnd % 1440) + 1440) % 1440;
+
+        state.items[drag.idx].start = minutesToString(newStart);
+        state.items[drag.idx].end   = minutesToString(newEnd);
+      }
+      
+      view.renderClock();
+      view.renderLegend();
+      view.updateHub();
+    },
+    onPointerUp(evt) {
+      if (state.pendingDrag && evt.pointerId === state.pendingDrag.pointerId) {
+        state.pendingDrag = null;
+      }
+      if (!state.drag || evt.pointerId !== state.drag.pointerId) return;
+      document.body.classList.remove('dragging');
+      model.pushHistory();
+      state.drag = null;
+    }
+  };
+
+  return {
+    init: () => controller.init()
+  };
+})();
+window.onload = window.App.init;
+</script>
+</body>
+</html>
